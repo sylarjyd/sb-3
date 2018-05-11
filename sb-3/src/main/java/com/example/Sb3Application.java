@@ -14,7 +14,7 @@ import com.example.service.VedioService;
 
 @SpringBootApplication
 public class Sb3Application {
-
+	//扫描文件获取信息
 	public static void main(String[] args) throws ScanFilesException {
 		ConfigurableApplicationContext context = SpringApplication.run(Sb3Application.class, args);
 		VedioService vedioService = context.getBean(VedioService.class);
