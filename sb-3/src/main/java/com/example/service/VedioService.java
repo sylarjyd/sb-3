@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.example.constant.VedioConstant;
 import com.example.entity.VedioInfo;
 import com.example.exception.ScanFilesException;
 import com.example.utils.FileSafeCode;
@@ -83,8 +86,11 @@ public class VedioService {
 	                /**非文件夹**/  
 	                else{  
 	                	VedioInfo vedioInfo = createVedioInfo(filelist[i]);
-	                    scanFiles.add(vedioInfo);  
-	                    insertVedioInfo(vedioInfo);
+	                    
+	                    if(!vedioInfo.getGroup().equals("")) {
+                    		scanFiles.add(vedioInfo);  
+ 	                        insertVedioInfo(vedioInfo);
+                    	}
 	                }  
 	            }  
 	        }  
@@ -114,8 +120,11 @@ public class VedioService {
 	                }else{  
 	                    //暂时将文件名放入scanFiles中  
 	                	VedioInfo vedioInfo = createVedioInfo(files[i]);
-	                    scanFiles.add(vedioInfo);  
-	                    insertVedioInfo(vedioInfo);
+	                	if(!vedioInfo.getGroup().equals("")) {
+                    		scanFiles.add(vedioInfo);  
+ 	                        insertVedioInfo(vedioInfo);
+                    	}
+	                   
 	                }  
 	            }  
 	              
@@ -131,8 +140,11 @@ public class VedioService {
 	                    }else{  
 	                    	//暂时将文件名放入scanFiles中  
 	                    	VedioInfo vedioInfo = createVedioInfo(currentFiles[j]);
-	                        scanFiles.add(vedioInfo);  
-	                        insertVedioInfo(vedioInfo);
+	                    	if(!vedioInfo.getGroup().equals("")) {
+	                    		scanFiles.add(vedioInfo);  
+	 	                        insertVedioInfo(vedioInfo);
+	                    	}
+	                       
 	                    }  
 	                }  
 	            }  
@@ -162,17 +174,23 @@ public class VedioService {
 			}
         	vedioInfo.setHashvalue(md5Value);
         	Integer queryMd5Count = queryMd5Count(md5Value);
-            vedioInfo.setGroup(md5Value+(queryMd5Count+1));
+            //vedioInfo.setGroup(md5Value+(queryMd5Count+1));
+        	
+        	if(queryMd5Count>0) {
+        		vedioInfo.setGroup("");
+        	}else {
+        		vedioInfo.setGroup(md5Value+"_"+(queryMd5Count+1));
+        	}
             vedioInfo.setFormat(name.substring(name.lastIndexOf(".")+1));
             Map<String, String> vedioMetaData = getVedioMetaData(file.getAbsolutePath());
             vedioInfo.setResolutionx(vedioMetaData.get("resolutionx"));
             vedioInfo.setResolutiony(vedioMetaData.get("resolutiony"));
-            vedioInfo.setDescription("");
+            vedioInfo.setDescription(name);
             vedioInfo.setCite("");
             vedioInfo.setLicense("");
             vedioInfo.setTags("");
-            vedioInfo.setProvider("");
-            vedioInfo.setProvidedate("");
+            vedioInfo.setProvider(VedioConstant.PROVIDER);
+            vedioInfo.setProvidedate(getCurrentDate());
         	return vedioInfo;
 	    }
 	    
@@ -287,7 +305,19 @@ public class VedioService {
 			return isFile;
 		}
 
+		
+		private static String getCurrentDate() {
+			Date date = new Date();
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			return sdf.format(date);
+			
+		}
 
+		
+		public static void main(String[] args) {
+			System.out.println(getCurrentDate());
+		}
+		
 		public static Map<String,String> getVedioMetaData(String filename){
 			
 			Map<String,String> map = new HashMap<>();
