@@ -15,11 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.MatchResult;
 
+
 import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.PatternCompiler;
 import org.apache.oro.text.regex.PatternMatcher;
 import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Perl5Matcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,13 +32,16 @@ import com.example.constant.VedioConstant;
 import com.example.entity.VedioInfo;
 import com.example.exception.ScanFilesException;
 import com.example.utils.FileSafeCode;
+import com.example.utils.Md5CaculateUtil;
 import com.example.utils.RandomUtil;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.IStreamCoder;
 import com.xuggle.xuggler.ICodec;
+
 @Service
 public class VedioService {
+	private static final Logger logger = LoggerFactory.getLogger(VedioService.class);    
 	
 	@Autowired
 	@Qualifier("jdbcTemplate")
@@ -59,8 +65,7 @@ public class VedioService {
 	    private static ArrayList<VedioInfo> scanFiles = new ArrayList<VedioInfo>();  
      
 	    /**linkedList实现**/  
-	    private static LinkedList<File> queueFiles = new LinkedList<File>();  
-	      
+	    private static volatile LinkedList<File> queueFiles = new LinkedList<File>();  
 	      
 	    /** 
 	     * TODO:递归扫描指定文件夹下面的指定文件 
@@ -88,8 +93,9 @@ public class VedioService {
 	                	VedioInfo vedioInfo = createVedioInfo(filelist[i]);
 	                    
 	                    if(!vedioInfo.getGroup().equals("")) {
-                    		scanFiles.add(vedioInfo);  
+                    		//scanFiles.add(vedioInfo);  
  	                        insertVedioInfo(vedioInfo);
+ 	                        logger.info(vedioInfo.getFile());
                     	}
 	                }  
 	            }  
@@ -121,33 +127,21 @@ public class VedioService {
 	                    //暂时将文件名放入scanFiles中  
 	                	VedioInfo vedioInfo = createVedioInfo(files[i]);
 	                	if(!vedioInfo.getGroup().equals("")) {
-                    		scanFiles.add(vedioInfo);  
+                    		//scanFiles.add(vedioInfo);  
+	                		System.out.println(Thread.currentThread().getName()+" : "+vedioInfo.getId());
  	                        insertVedioInfo(vedioInfo);
+ 	                        logger.info(vedioInfo.getFile());
+ 	                       
                     	}
 	                   
 	                }  
 	            }  
-	              
+	          for (int i = 0; i < 3; i++) {
+	        	  new Thread(new FileScan(),"thread_"+i).start();
+	              System.out.println("thread_"+i);
+	          }
 	            //如果linkedList非空遍历linkedList  
-	            while(!queueFiles.isEmpty()){  
-	                //移出linkedList中的第一个  
-	                File headDirectory = queueFiles.removeFirst();  
-	                File [] currentFiles = headDirectory.listFiles();  
-	                for(int j = 0; j < currentFiles.length; j ++){  
-	                    if(currentFiles[j].isDirectory()){  
-	                        //如果仍然是文件夹，将其放入linkedList中  
-	                        queueFiles.add(currentFiles[j]);  
-	                    }else{  
-	                    	//暂时将文件名放入scanFiles中  
-	                    	VedioInfo vedioInfo = createVedioInfo(currentFiles[j]);
-	                    	if(!vedioInfo.getGroup().equals("")) {
-	                    		scanFiles.add(vedioInfo);  
-	 	                        insertVedioInfo(vedioInfo);
-	                    	}
-	                       
-	                    }  
-	                }  
-	            }  
+	           
 	        }  
 	          
 	        return scanFiles;  
@@ -166,12 +160,18 @@ public class VedioService {
         	vedioInfo.setHashtype("MD5");
         	String md5Value = "";
 			try {
-				md5Value = FileSafeCode.getMD5(file);
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
+				//md5Value = FileSafeCode.getMD5(file);
+				md5Value = Md5CaculateUtil.getMD5(file);
+			}
+			catch(Exception e) {
 				e.printStackTrace();
 			}
+//			catch (NoSuchAlgorithmException e) {
+//				e.printStackTrace();
+//			} 
+//			catch (IOException e) {
+//				e.printStackTrace();
+//			}
         	vedioInfo.setHashvalue(md5Value);
         	Integer queryMd5Count = queryMd5Count(md5Value);
             //vedioInfo.setGroup(md5Value+(queryMd5Count+1));
@@ -183,8 +183,13 @@ public class VedioService {
         	}
             vedioInfo.setFormat(name.substring(name.lastIndexOf(".")+1));
             Map<String, String> vedioMetaData = getVedioMetaData(file.getAbsolutePath());
-            vedioInfo.setResolutionx(vedioMetaData.get("resolutionx"));
-            vedioInfo.setResolutiony(vedioMetaData.get("resolutiony"));
+            if (vedioMetaData.get("stateCode").equals("0")) {
+            	  vedioInfo.setResolutionx(vedioMetaData.get("resolutionx"));
+                  vedioInfo.setResolutiony(vedioMetaData.get("resolutiony"));
+			}else{
+				 vedioInfo.setResolutionx("");
+                 vedioInfo.setResolutiony("");
+			}
             vedioInfo.setDescription(name);
             vedioInfo.setCite("");
             vedioInfo.setLicense("");
@@ -330,9 +335,12 @@ public class VedioService {
 
 	        // check if the operation was successful
 
-	        if (result<0)
+	        if (result<0){
+	        	map.put("stateCode", "1");
+	        	return map;
+	        }
 
-	            throw new RuntimeException("Failed to open media file");
+	         //throw new RuntimeException("Failed to open media file");
 
 	        // query how many streams the call to open found
 
@@ -350,13 +358,13 @@ public class VedioService {
 
 	        long bitRate = container.getBitRate();
 
-	        System.out.println("Number of streams: " + numStreams);
-
-	        System.out.println("Duration (ms): " + duration);
-
-	        System.out.println("File Size (bytes): " + fileSize);
-
-	        System.out.println("Bit Rate: " + bitRate);
+//	        System.out.println("Number of streams: " + numStreams);
+//
+//	        System.out.println("Duration (ms): " + duration);
+//
+//	        System.out.println("File Size (bytes): " + fileSize);
+//
+//	        System.out.println("Bit Rate: " + bitRate);
 
 	        // iterate through the streams to print their meta data
 
@@ -370,57 +378,87 @@ public class VedioService {
 
 	            IStreamCoder coder = stream.getStreamCoder();
 
-	            System.out.println("*** Start of Stream Info ***");
+//	            System.out.println("*** Start of Stream Info ***");
+//
+//	            System.out.printf("stream %d: ", i);
+//
+//	            System.out.printf("type: %s; ", coder.getCodecType());
+//
+//	            System.out.printf("codec: %s; ", coder.getCodecID());
+//
+//	            System.out.printf("duration: %s; ", stream.getDuration());
+//
+//	            System.out.printf("start time: %s; ", container.getStartTime());
+//
+//	            System.out.printf("timebase: %d/%d; ",
 
-	            System.out.printf("stream %d: ", i);
+//                stream.getTimeBase().getNumerator(),
+//
+//                stream.getTimeBase().getDenominator());
 
-	            System.out.printf("type: %s; ", coder.getCodecType());
-
-	            System.out.printf("codec: %s; ", coder.getCodecID());
-
-	            System.out.printf("duration: %s; ", stream.getDuration());
-
-	            System.out.printf("start time: %s; ", container.getStartTime());
-
-	            System.out.printf("timebase: %d/%d; ",
-
-                stream.getTimeBase().getNumerator(),
-
-                stream.getTimeBase().getDenominator());
-
-	            System.out.printf("coder tb: %d/%d; ",
-
-                coder.getTimeBase().getNumerator(),
-
-                coder.getTimeBase().getDenominator());	       
+//	            System.out.printf("coder tb: %d/%d; ",
+//
+//                coder.getTimeBase().getNumerator(),
+//
+//                coder.getTimeBase().getDenominator());	       
 
 	            if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_AUDIO) {
-	                System.out.printf("sample rate: %d; ", coder.getSampleRate());
-
-	                System.out.printf("channels: %d; ", coder.getChannels());
-
-	                System.out.printf("format: %s", coder.getSampleFormat());
+//	                System.out.printf("sample rate: %d; ", coder.getSampleRate());
+//
+//	                System.out.printf("channels: %d; ", coder.getChannels());
+//
+//	                System.out.printf("format: %s", coder.getSampleFormat());
 
 	            }else if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_VIDEO) {
 
-	                System.out.printf("width: %d; ", coder.getWidth());
-
-	                System.out.printf("height: %d; ", coder.getHeight());
-
-	                System.out.printf("format: %s; ", coder.getPixelType());
-
-	                System.out.printf("frame-rate: %5.2f; ", coder.getFrameRate().getDouble());
-	                
+//	                System.out.printf("width: %d; ", coder.getWidth());
+//
+//	                System.out.printf("height: %d; ", coder.getHeight());
+//
+//	                System.out.printf("format: %s; ", coder.getPixelType());
+//
+//	                System.out.printf("frame-rate: %5.2f; ", coder.getFrameRate().getDouble());
+//	                
 	                map.put("resolutionx", coder.getWidth()+"");
 	                map.put("resolutiony", coder.getHeight()+"");
 
 	            }
 
-	            System.out.println("*** End of Stream Info ***");
-
+//	            System.out.println("*** End of Stream Info ***");
+//
 	            }
-	        
+	        	map.put("stateCode", "0");
 	        	return map;
 	    	}
+		
+		class FileScan extends Thread{
+			
+      	 
+			@Override
+			public void run() {
 
+				 while(!queueFiles.isEmpty()){  
+				//移出linkedList中的第一个  
+                File headDirectory = queueFiles.removeFirst();
+                File [] currentFiles = headDirectory.listFiles();  
+                for(int j = 0; j < currentFiles.length; j ++){  
+                    if(currentFiles[j].isDirectory()){  
+                        //如果仍然是文件夹，将其放入linkedList中  
+                        queueFiles.add(currentFiles[j]);  
+                    }else{  
+                    	//暂时将文件名放入scanFiles中  
+                    	VedioInfo vedioInfo = createVedioInfo(currentFiles[j]);
+                    	if(!vedioInfo.getGroup().equals("")) {
+                    		//scanFiles.add(vedioInfo);
+                    		System.out.println(Thread.currentThread().getName()+" : "+vedioInfo.getId());
+ 	                        insertVedioInfo(vedioInfo);
+ 	                        logger.info(vedioInfo.getFile());
+                    	}
+                       
+                    }  
+                }  
+			}
+		}
+	}
+		
 }

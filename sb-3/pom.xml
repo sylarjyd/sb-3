@@ -52,6 +52,10 @@
 		    <artifactId>commons-codec</artifactId>
 		    <version>1.10</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-logging</artifactId>
+		</dependency>
 <!-- 		<dependency> -->
 <!-- 		    <groupId>org.bytedeco.javacpp-presets</groupId> -->
 <!-- 		    <artifactId>ffmpeg</artifactId> -->
@@ -63,9 +67,19 @@
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>                 
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+	                <mainClass>com.example.Sb3Application</mainClass>
+	            </configuration>
+	            <executions>
+	                <execution>
+	                    <goals>
+	                        <goal>repackage</goal>
+	                    </goals>
+	                </execution>
+	            </executions>                 
 			</plugin>
-			 
+			
 		</plugins>
 	</build>
 
