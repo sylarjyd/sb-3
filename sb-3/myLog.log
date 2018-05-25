@@ -1,0 +1,22 @@
+2018-05-25 15:23:38.608  INFO 5376 --- [main] com.example.Sb3Application               : Starting Sb3Application on PC-20161018JNPE with PID 5376 (F:\jyd\gittest\sb-3\target\classes started by Administrator in F:\jyd\gittest\sb-3)
+2018-05-25 15:23:38.612  INFO 5376 --- [main] com.example.Sb3Application               : No active profile set, falling back to default profiles: default
+2018-05-25 15:23:38.650  INFO 5376 --- [main] s.c.a.AnnotationConfigApplicationContext : Refreshing org.springframework.context.annotation.AnnotationConfigApplicationContext@75f9eccc: startup date [Fri May 25 15:23:38 CST 2018]; root of context hierarchy
+2018-05-25 15:23:39.505  INFO 5376 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2018-05-25 15:23:39.507  INFO 5376 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Bean with name 'dataSource' has been autodetected for JMX exposure
+2018-05-25 15:23:39.511  INFO 5376 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Located MBean 'dataSource': registering with JMX server as MBean [com.zaxxer.hikari:name=dataSource,type=HikariDataSource]
+2018-05-25 15:23:39.525  INFO 5376 --- [main] com.example.Sb3Application               : Started Sb3Application in 1.175 seconds (JVM running for 1.494)
+2018-05-25 15:25:06.206  INFO 5768 --- [main] com.example.Sb3Application               : Starting Sb3Application on PC-20161018JNPE with PID 5768 (F:\jyd\gittest\sb-3\target\classes started by Administrator in F:\jyd\gittest\sb-3)
+2018-05-25 15:25:06.209  INFO 5768 --- [main] com.example.Sb3Application               : No active profile set, falling back to default profiles: default
+2018-05-25 15:25:06.250  INFO 5768 --- [main] s.c.a.AnnotationConfigApplicationContext : Refreshing org.springframework.context.annotation.AnnotationConfigApplicationContext@55a1c291: startup date [Fri May 25 15:25:06 CST 2018]; root of context hierarchy
+2018-05-25 15:25:07.100  INFO 5768 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2018-05-25 15:25:07.102  INFO 5768 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Bean with name 'dataSource' has been autodetected for JMX exposure
+2018-05-25 15:25:07.106  INFO 5768 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Located MBean 'dataSource': registering with JMX server as MBean [com.zaxxer.hikari:name=dataSource,type=HikariDataSource]
+2018-05-25 15:25:07.120  INFO 5768 --- [main] com.example.Sb3Application               : Started Sb3Application in 1.176 seconds (JVM running for 1.486)
+2018-05-25 15:25:08.116  INFO 5768 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2018-05-25 15:25:08.329  INFO 5768 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2018-05-25 15:25:10.075  INFO 5768 --- [thread_0] com.example.service.VedioService         : E:\BaiduNetdiskDownload\vedio\ds\3.在Windows上搭建truffle开发框架.avi
+2018-05-25 15:25:10.076  INFO 5768 --- [Thread-2] s.c.a.AnnotationConfigApplicationContext : Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@55a1c291: startup date [Fri May 25 15:25:06 CST 2018]; root of context hierarchy
+2018-05-25 15:25:10.077  INFO 5768 --- [Thread-2] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2018-05-25 15:25:10.078  INFO 5768 --- [Thread-2] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans
+2018-05-25 15:25:10.078  INFO 5768 --- [Thread-2] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2018-05-25 15:25:10.081  INFO 5768 --- [Thread-2] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
